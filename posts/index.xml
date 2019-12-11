@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 将夜泊行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 11 Dec 2019 09:53:26 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2019 10:11:09 +0800</lastBuildDate>
     
 	<atom:link href="https://yuxiaobo96.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>使用helm安装Istio</title>
+      <link>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</link>
+      <pubDate>Wed, 11 Dec 2019 10:11:09 +0800</pubDate>
+      
+      <guid>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</guid>
+      <description>在 Istio 官网 介绍了使用不同的方式安装 Istio，但是很多细节没有说明。 这篇文档介绍，使用 helm 在 k8s 集群上部署 istio，并演示 Bookinfo 示例。 下载并安装 Istio 下</description>
+    </item>
     
     <item>
       <title>Git Command</title>
@@ -17,7 +26,7 @@
       <pubDate>Wed, 11 Dec 2019 09:53:26 +0800</pubDate>
       
       <guid>https://yuxiaobo96.github.io/2019/git-command/</guid>
-      <description>回退版本 当在工作区修改文件，还没git add .时： git checkout . (与git add .相对)或者git reset &amp;ndash;hard 当已经 git add .,保存到暂存区时： git reset(退回到第1</description>
+      <description>回退版本 当在工作区修改文件，还没 git add . 时： git checkout . (与 git add . 相对)或者 git reset &amp;ndash;hard 当已经 git add .,保存到暂存区时： git reset(退回到第1）步骤) + git</description>
     </item>
     
     <item>

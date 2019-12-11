@@ -10,7 +10,7 @@
   
   
   <link rel="prev" href="https://yuxiaobo96.github.io/2019/my-first-blog/" />
-  
+  <link rel="next" href="https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/" />
   <link rel="canonical" href="https://yuxiaobo96.github.io/2019/git-command/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -46,7 +46,7 @@
     "articleSection" : "posts",
     "name" : "Git Command",
     "headline" : "Git Command",
-    "description" : "回退版本 当在工作区修改文件，还没git add .时： git checkout . (与git add .相对)或者git reset \x26ndash;hard 当已经 git add .,保存到暂存区时： git reset(退回到第1",
+    "description" : "回退版本 当在工作区修改文件，还没 git add . 时： git checkout . (与 git add . 相对)或者 git reset \x26ndash;hard 当已经 git add .,保存到暂存区时： git reset(退回到第1）步骤) \x2b git",
     "inLanguage" : "zh-cn",
     "author" : "Yuxiaobo",
     "creator" : "Yuxiaobo",
@@ -57,7 +57,7 @@
     "datePublished": "2019-12-11 09:53:26 \x2b0800 CST",
     "dateModified" : "2019-12-11 09:53:26 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2019\/git-command\/",
-    "wordCount" : "1651",
+    "wordCount" : "1525",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 1651 words</span>
+                <span class="post-word-count">, 1525 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -154,9 +154,9 @@
 <h3 id="回退版本">回退版本</h3>
 
 <ol>
-<li>当在工作区修改文件，还没<code>git add .</code>时：
+<li>当在工作区修改文件，还没 <code>git add .</code> 时：
 git checkout .
-(与git add .相对)或者git reset &ndash;hard</li>
+(与 git add . 相对)或者 git reset &ndash;hard</li>
 <li>当已经 <code>git add .</code>,保存到暂存区时：
 git reset(退回到第1）步骤) + git checkout .（回退到未修改状态）
 或者 git reset &ndash;hard</li>
@@ -167,17 +167,14 @@ git reset &ndash;hard origin/master 从远程仓库重新拉代码（远程仓�
 git reset &ndash;hard HEAD^（HEAD代表当前版本，^代表上一版本，也可用数字进行代替，如:HEAD~1）
 也可以通过指定版本进行回退：git reset &ndash;hard +版本号（前7位就好）</li>
 <li>再重新进行修改文件
-工作区里update-git add到暂存区-git commit到本地仓库
+在工作区里修改完文件后，git add 到暂存区，接着使用 git commit 保存到本地仓库
 最后需强制推送到远程仓库
 git push -f origin +分支名</li>
 </ol>
 
-<p><strong>注意</strong>：</p>
-
-<ol>
-<li>git log用来记录每一次的commit提交记录</li>
-<li>git reflog用来记录每一次git命令记录（包括checkout,merge,commit等）</li>
-</ol>
+<p><strong>提示</strong>：
+- 使用 <code>git log</code> 可查看每次提交 commit 的记录
+- 使用 <code>git reflog</code> 可查看每一次 git 命令的使用记录（包括 checkout、merge、commit 等）</p>
 
 <h3 id="合并分之及解决冲突">合并分之及解决冲突</h3>
 
@@ -186,45 +183,40 @@ git push -f origin +分支名</li>
 可在当前分之上使用：git merge +其他分之</li>
 <li>解决冲突
 在当前分之上解决冲突；
-去到提示的文件中git所标注的版本冲突处进行修改；
-把修改后的冲突文件进行git add、git commit 操作；
+去到提示的文件中 git 所标注的版本冲突处进行修改；
+把修改后的冲突文件进行 git add、git commit 操作；
 最后再git push -f origin +当前分之（也可以不强推）</li>
 </ol>
 
-<p><strong>注意</strong>：</p>
+<p><strong>提示</strong>：可以使用 <code>git log --graph</code> 命令查看分之的合并图</p>
 
-<p>git log &ndash;graph用来记录分之的合并图</p>
-
-<h3 id="在clone下来的其他分之上进行操作-如release-1-14">在clone下来的其他分之上进行操作（如release-1.14）</h3>
+<h3 id="在-clone-下来的其他分之上进行操作-如-release-1-14">在 clone 下来的其他分之上进行操作（如 release-1.14）</h3>
 
 <ol>
-<li>当clone下来一个项目时，只能看到一个master主分支；</li>
+<li>当 clone 下来一个项目时，只能看到一个 master 主分支；</li>
 <li>使用<code>git branch -a</code> 可以看到所有分之；</li>
-<li>此时需要创建远程origin的release-1.14分支到本地仓库上：
+<li>此时需要创建远程 origin 的 release-1.14 分支到本地仓库上：
      git checkout -b release-1.14 origin/release-1.14
-（或者先切换到要进行操作的远程分支上git checkout remotes/origin/release-1.14；然后在此分之上创建与远程分之对应的本地分之 git checkout -b release-1.14）</li>
+（或者先切换到要进行操作的远程分支上 git checkout remotes/origin/release-1.14；然后在此分之上创建与远程分之对应的本地分之 git checkout -b release-1.14）</li>
 </ol>
 
-<h3 id="将同一分之上已经提交的两条或多条commit信息合并-commit2和commit3">将同一分之上已经提交的两条或多条commit信息合并（commit2和commit3）</h3>
+<h3 id="将同一分之上已经提交的两条或多条-commit-信息合并-commit2-和-commit3">将同一分之上已经提交的两条或多条 commit 信息合并（commit2 和 commit3）</h3>
 
 <ol>
-<li>利用<code>git log</code>查看commit版本（最新的版本在最上面），
-找到要合并commit版本的前一条的commit信息(commit1)；</li>
-<li>使用git rebase -i + commit1版本号  (-i参数指不需要合并commit的hash值)；
-进入vi的编辑模式，上方未注释的部分是要执行的指令，下方注释的部分是指令的提示说明；
+<li>利用<code>git log</code>查看 commit 版本（最新的版本在最上面），
+找到要合并 commit 版本的前一条的 commit 信息(commit1)；</li>
+<li>使用git rebase -i + commit1版本号  (-i 参数指不需要合并 commit 的 hash 值)；
+进入 vi 的编辑模式，上方未注释的部分是要执行的指令，下方注释的部分是指令的提示说明；
 上方指令部分由三部分组成：命令名称、commit hash、commit message，
 其中命令名称有两种：pick-执行该条commit；
                                          squash-把当前commit合并到前一个commit;</li>
-<li>将后一个commit的前方命令<code>pick</code>改成<code>sqash</code>或<code>s</code>,保存退出；
-进入到commit message的编辑界面，将提示说明前（即#Pleasesa）的几行文字删除，增添新的commit信息即可，完成commit信息合并。</li>
+<li>将后一个 commit 的前方命令 <code>pick</code> 改成 <code>sqash</code> 或 <code>s</code>,保存退出；
+进入到 commit message 的编辑界面，将提示说明前（即#Pleasesa）的几行文字删除，增添新的 commit 信息即可，完成 commit 信息合并。</li>
 </ol>
 
-<p><strong>注意</strong>：</p>
-
-<ol>
-<li>git rebase &ndash;continue 继续运行（用于解决冲突后，使操作继续执行）</li>
-<li>git rebase &ndash;abort 回退到变基前，即恢复所有的修改</li>
-</ol>
+<p><strong>提示</strong>：
+- git rebase &ndash;continue 继续运行（用于解决冲突后，使操作继续执行）
+- git rebase &ndash;abort 回退到变基前，即恢复所有的修改</p>
 
 <h3 id="保存当前分之修改-然后去修改其他分之-如当前分之修改到一半-急需去优先修改另一分之">保存当前分之修改，然后去修改其他分之（如当前分之修改到一半，急需去优先修改另一分之）</h3>
 
@@ -244,7 +236,7 @@ git stash pop</li>
 <li>在当前分之：git cherry-pick +需要复制的commit版本号（前7位就好）</li>
 </ol>
 
-<h3 id="为git中常用的命令增加别名">为git中常用的命令增加别名</h3>
+<h3 id="为-git-中常用的命令增加别名">为 git 中常用的命令增加别名</h3>
 
 <ol>
 <li>使用命令：
@@ -269,9 +261,8 @@ git config &ndash;global alias.别名 + 要修改的命令
 	merge = refs/heads/master
 
 </code></pre></li>
-</ol>
 
-<p>而当前用户的Git配置文件放在用户主目录下的一个隐藏文件<code>.gitconfig</code>中：</p>
+<li><p>当前用户的Git配置文件放在用户主目录下的一个隐藏文件<code>.gitconfig</code>中：</p>
 
 <pre><code class="language-bash">$ ~ cat .gitconfig
 [user]
@@ -279,11 +270,10 @@ git config &ndash;global alias.别名 + 要修改的命令
 	email = yuxiaobogo@163.com
 [alias]
 	st = status
-</code></pre>
+</code></pre></li>
+</ol>
 
-<p><strong>注意</strong>：</p>
-
-<p>若配置错误，可在这两个文件下编辑修改或删除。</p>
+<p><strong>提示</strong>：也可直接在这两个文件下编辑修改或删除。</p>
 
     </div>
 
@@ -317,6 +307,8 @@ git config &ndash;global alias.别名 + 要修改的命令
         
         <a href="https://yuxiaobo96.github.io/2019/my-first-blog/" class="prev" rel="prev" title="My First Blog"><i class="iconfont icon-left"></i>&nbsp;My First Blog</a>
          
+        
+        <a href="https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/" class="next" rel="next" title="使用helm安装Istio">使用helm安装Istio&nbsp;<i class="iconfont icon-right"></i></a>
         
     </div>
 
