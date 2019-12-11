@@ -17,7 +17,7 @@
       <pubDate>Wed, 11 Dec 2019 09:53:26 +0800</pubDate>
       
       <guid>https://yuxiaobo96.github.io/2019/git-command/</guid>
-      <description>test 111111111111111111111111111</description>
+      <description>回退版本 当在工作区修改文件，还没git add .时： git checkout . (与git add .相对)或者git reset &amp;ndash;hard 当已经 git add .,保存到暂存区时： git reset(退回到第1</description>
     </item>
     
     <item>
