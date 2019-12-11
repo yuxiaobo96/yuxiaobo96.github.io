@@ -57,7 +57,7 @@
     "datePublished": "2019-12-11 10:11:09 \x2b0800 CST",
     "dateModified" : "2019-12-11 10:11:09 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2019\/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio\/",
-    "wordCount" : "1040",
+    "wordCount" : "1047",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 1040 words</span>
+                <span class="post-word-count">, 1047 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -156,9 +156,7 @@
 
 <h3 id="下载并安装-istio">下载并安装 Istio</h3>
 
-<ol>
-<li>下载 Istio</li>
-</ol>
+<p>下载 Istio</p>
 
 <p>可去 Istio 的发行版本里下载最新的压缩包，<a href="https://github.com/istio/istio/releases/tag/1.4.0" rel="nofollow noreferrer" target="_blank">Istio 1.4.0</a>，解压后，主要包含三部分：</p>
 
@@ -174,18 +172,14 @@
 cp -i istioctl /usr/local/bin/istioctl
 </code></pre>
 
-<ol>
-<li>安装 helm</li>
-</ol>
+<p>安装 helm</p>
 
 <p>可去 helm 的发行版本里下载二进制可执行文件，<a href="https://github.com/helm/helm/releases/tag/v3.0.0" rel="nofollow noreferrer" target="_blank">helm 3.0.0</a>，解压后，将 helm 的二进制文件移动到PATH路径下：</p>
 
 <pre><code class="language-shell">cp -i linux-amd64/helm /usr/local/bin/helm
 </code></pre>
 
-<ol>
-<li>安装 Istio</li>
-</ol>
+<p>安装 Istio</p>
 
 <p>为 istio-system 组件创建一个命名空间：</p>
 
@@ -267,7 +261,7 @@ kubectl apply -f  bookinfo-gateway.yaml
 
 <h3 id="自定义路由目标规则转发">自定义路由目标规则转发</h3>
 
-<p>自定义 yaml 文件，并配置，这里使其转发到 reviews-v3 版本，使其永远显示红色的星星</p>
+<p>自定义 yaml 文件，并配置，下面自定义文件，使其转发到 reviews-v3 版本，效果为永远显示红色的星星</p>
 
 <pre><code class="language-shell">vim virtual-service-reviews-v3.yaml
 # 填入以下内容
