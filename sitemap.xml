@@ -2,9 +2,9 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
     <url>
-      <loc>https://yuxiaobo96.github.io/posts/</loc>
+      <loc>https://yuxiaobo96.github.io/2019/install-kubernetes-with-kubeadm/</loc>
       
-      <lastmod>2019-12-11T10:11:09+08:00</lastmod>
+      <lastmod>2019-12-19T17:18:02+08:00</lastmod>
       
       
       
@@ -12,9 +12,9 @@
     </url>
   
     <url>
-      <loc>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</loc>
+      <loc>https://yuxiaobo96.github.io/posts/</loc>
       
-      <lastmod>2019-12-11T10:11:09+08:00</lastmod>
+      <lastmod>2019-12-19T17:18:02+08:00</lastmod>
       
       
       
@@ -23,6 +23,16 @@
   
     <url>
       <loc>https://yuxiaobo96.github.io/</loc>
+      
+      <lastmod>2019-12-19T17:18:02+08:00</lastmod>
+      
+      
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</loc>
       
       <lastmod>2019-12-11T10:11:09+08:00</lastmod>
       

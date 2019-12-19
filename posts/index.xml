@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 将夜泊行</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 11 Dec 2019 10:11:09 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 19 Dec 2019 17:18:02 +0800</lastBuildDate>
     
 	<atom:link href="https://yuxiaobo96.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Install Kubernetes With Kubeadm</title>
+      <link>https://yuxiaobo96.github.io/2019/install-kubernetes-with-kubeadm/</link>
+      <pubDate>Thu, 19 Dec 2019 17:18:02 +0800</pubDate>
+      
+      <guid>https://yuxiaobo96.github.io/2019/install-kubernetes-with-kubeadm/</guid>
+      <description>在 virtualbox 上安装 ubuntu 虚拟机 教程很多，自行百度 这里贴一个相对完善的教程链接 安装 virtualbox 及 ubuntu 虚拟机 ubuntu 桌面版最新版下载地址 Ubuntu 18.04.3 LTS 在教程中有与主机共享文件夹这一步</description>
+    </item>
     
     <item>
       <title>使用helm安装Istio</title>
