@@ -9,7 +9,7 @@
   
   
   
-  <link rel="prev" href="https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/" />
+  <link rel="prev" href="https://yuxiaobo96.github.io/2019/install-istio-with-helm/" />
   
   <link rel="canonical" href="https://yuxiaobo96.github.io/2019/install-kubernetes-with-kubeadm/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -46,7 +46,7 @@
     "articleSection" : "posts",
     "name" : "Install Kubernetes With Kubeadm",
     "headline" : "Install Kubernetes With Kubeadm",
-    "description" : "在 virtualbox 上安装 ubuntu 虚拟机 教程很多，自行百度 这里贴一个相对完善的教程链接 安装 virtualbox 及 ubuntu 虚拟机 ubuntu 桌面版最新版下载地址 Ubuntu 18.04.3 LTS 在教程中有与主机共享文件夹这一步",
+    "description" : "在 virtualbox 上安装 ubuntu 虚拟机 教程很多，自行百度， 这里贴一个相对完善的教程链接 安装 virtualbox 及 ubuntu 虚拟机 ubuntu 桌面版最新版下载地址 Ubuntu 18.04.3 LTS 注意：在安装虚拟机时，可能会遇",
     "inLanguage" : "zh-cn",
     "author" : "Yuxiaobo",
     "creator" : "Yuxiaobo",
@@ -57,7 +57,7 @@
     "datePublished": "2019-12-19 17:18:02 \x2b0800 CST",
     "dateModified" : "2019-12-19 17:18:02 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2019\/install-kubernetes-with-kubeadm\/",
-    "wordCount" : "3629",
+    "wordCount" : "3615",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 3629 words</span>
+                <span class="post-word-count">, 3615 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -153,19 +153,15 @@
 
 <h2 id="在-virtualbox-上安装-ubuntu-虚拟机">在 virtualbox 上安装 ubuntu 虚拟机</h2>
 
-<ol>
-<li><p>教程很多，自行百度
-这里贴一个相对完善的教程链接 <a href="https://blog.csdn.net/u012732259/article/details/70172704" rel="nofollow noreferrer" target="_blank">安装 virtualbox 及 ubuntu 虚拟机</a></p></li>
+<p>教程很多，自行百度，
+这里贴一个相对完善的教程链接 <a href="https://blog.csdn.net/u012732259/article/details/70172704" rel="nofollow noreferrer" target="_blank">安装 virtualbox 及 ubuntu 虚拟机</a></p>
 
-<li><p>ubuntu 桌面版最新版下载地址
-<a href="https://ubuntu.com/download/desktop" rel="nofollow noreferrer" target="_blank">Ubuntu 18.04.3 LTS</a></p></li>
+<p>ubuntu 桌面版最新版下载地址
+<a href="https://ubuntu.com/download/desktop" rel="nofollow noreferrer" target="_blank">Ubuntu 18.04.3 LTS</a></p>
 
-<li><p>在教程中有与主机共享文件夹这一步骤，个人觉得没多大用</p></li>
-
-<li><p>在安装虚拟机时，可能会遇到<code>Kernel driver not installed</code>的问题（即内核驱动没有安装或者启动）。
+<p><strong>注意</strong>：在安装虚拟机时，可能会遇到<code>Kernel driver not installed</code>的问题（即内核驱动没有安装或者启动）。
 使用命令<code>lsmod</code>查看virtualbox的内核驱动是否加载，包含四个驱动，分别是：<code>vboxpci</code>、<code>vboxnetadp</code>、<code>vboxnetflt</code>、<code>vboxdrv</code>。
-按照以下步骤进行安装和启动：</p></li>
-</ol>
+按照以下步骤进行安装和启动：</p>
 
 <p>首先安装 build tools和 kernel header</p>
 
@@ -215,24 +211,17 @@ sudo modprobe vboxdrv
 无法获取 dpkg 前端锁 (/var/lib/dpkg/lock-frontend)，是否有其他进程占用它?
 </code></pre>
 
-<p>解决方法：</p>
-
-<ol>
-<li><p>杀死占用 apt-get 的进程，释放系统锁
-查找进程 PID :</p>
+<p>解决方法 1：杀死占用 apt-get 的进程，释放系统锁，查找进程 PID :</p>
 
 <pre><code class="language-shell">ps -aux|grep apt-get
-</code></pre></li>
-</ol>
+</code></pre>
 
 <p>然后把查找的 apt-get 相关的进程全部 kill 掉：</p>
 
 <pre><code class="language-shell">sudo kill PID #PID 即占用 apt-get 的进程
 </code></pre>
 
-<ol>
-<li>强制解锁，删除文件夹</li>
-</ol>
+<p>解决方法 2：强制解锁，删除文件夹</p>
 
 <p>当使用第一种方法时，没有找到 apt-get 的相关进程；
 或者找到相应的 PID，但 kill 时系统提示无此进程；
@@ -242,9 +231,7 @@ sudo modprobe vboxdrv
 sudo rm /var/lib/dpkg/lock
 </code></pre>
 
-<ol>
-<li>再次执行 apt-get 安装或更新命令即可</li>
-</ol>
+<p>再次执行 apt-get 安装或更新命令即可</p>
 
 <h3 id="虚拟机的网络设置">虚拟机的网络设置</h3>
 
@@ -339,9 +326,7 @@ sudo service ssh start
 
 <p>断开连接：exit</p>
 
-<ol>
-<li>记得修改主机名，更好记忆</li>
-</ol>
+<p>记得修改主机名，更好记忆</p>
 
 <p>如：
 主节点：k8s-master</p>
@@ -352,9 +337,7 @@ sudo service ssh start
 
 <h3 id="安装及配置-docker">安装及配置 docker</h3>
 
-<ol>
-<li>目前使用的最新版本为 5:19.03.4~3-0~ubuntu-bionic</li>
-</ol>
+<p>目前使用的最新版本为 5:19.03.4~3-0~ubuntu-bionic</p>
 
 <ul>
 <li>使用命令 <code>apt-cache madison docker-ce</code> 查看所有可用版本</li>
@@ -363,9 +346,7 @@ sudo service ssh start
 <a href="https://yeasy.gitbooks.io/docker_practice/install/ubuntu.html" rel="nofollow noreferrer" target="_blank">docker 安装及配置</a></li>
 </ul>
 
-<ol>
-<li>对建立 docker 用户组进行补充说明：</li>
-</ol>
+<p>对建立 docker 用户组进行补充说明：</p>
 
 <ul>
 <li>在新建用户组之前，先查看用户组中是否有 docker 组，使用命令：
@@ -387,24 +368,22 @@ sudo service ssh start
 如果提示 get &hellip;&hellip;dial unix /var/run/docker.sock权限不够，则修改/var/run/docker.sock权限：
 <code>sudo chmod a+rw /var/run/docker.sock</code></p>
 
-<ol>
-<li><p>设置docker开机自启动</p>
+<p>设置docker开机自启动</p>
 
 <pre><code class="language-shell">systemctl enable docker &amp;&amp; systemctl start docker
-</code></pre></li>
+</code></pre>
 
-<li><p>配置镜像，阿里镜像加速（可有可无）</p>
+<p>配置镜像，阿里镜像加速（可有可无）</p>
 
 <pre><code class="language-shell">sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json &lt;&lt;-'EOF'
 {
-&quot;registry-mirrors&quot;: [&quot;阿里云加速器地址&quot;]
+  &quot;registry-mirrors&quot;: [&quot;阿里云加速器地址&quot;]
 }
 EOF
 sudo systemctl daemon-reload
 sudo systemctl restart docker
-</code></pre></li>
-</ol>
+</code></pre>
 
 <h3 id="配置k8s源信息来下载-kubeadm-kubectl-kubelet">配置k8s源信息来下载 kubeadm,kubectl.kubelet</h3>
 
@@ -464,21 +443,19 @@ done
 
 <h3 id="更改cgroup-driver">更改cgroup driver</h3>
 
-<ol>
-<li><p>在docker配置文件<code>/etc/docker/daemon.json.bk</code>中更改cgroup driver（警告信息），如下</p>
+<p>在docker配置文件<code>/etc/docker/daemon.json.bk</code>中更改cgroup driver（警告信息），如下</p>
 
 <pre><code class="language-shell">{
-&quot;registry-mirrors&quot;: [&quot;阿里云镜像地址&quot;], # 配置的阿里云镜像
-&quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
-&quot;log-driver&quot;: &quot;json-file&quot;,
-&quot;log-opts&quot;: {
-&quot;max-size&quot;: &quot;100m&quot;
-},
-&quot;storage-driver&quot;: &quot;overlay2&quot;
+  &quot;registry-mirrors&quot;: [&quot;阿里云镜像地址&quot;], # 配置的阿里云镜像
+  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
+  &quot;log-driver&quot;: &quot;json-file&quot;,
+  &quot;log-opts&quot;: {
+    &quot;max-size&quot;: &quot;100m&quot;
+  },
+  &quot;storage-driver&quot;: &quot;overlay2&quot;
 }
 
-</code></pre></li>
-</ol>
+</code></pre>
 
 <p>然后重启docker：</p>
 
@@ -493,14 +470,12 @@ systemctl restart docker
 
 <h3 id="给master节点安装网络插件-推荐calico">给master节点安装网络插件（推荐Calico）</h3>
 
-<ol>
-<li><p>这一步是为了与其他node节点通信,
+<p>这一步是为了与其他node节点通信,
 首先需使用命令<code>kubeadm reset</code>使主机恢复原状。
 然后使用以下命令初始化主机：</p>
 
 <pre><code class="language-shell">sudo kubeadm init --pod-network-cidr=192.168.0.0/16 #为了避免网络插件的IP地址网段与k8s集群所使用的IP地址网段冲突，这里建议使用 10.0.0.0/16
-</code></pre></li>
-</ol>
+</code></pre>
 
 <p>三大内网：</p>
 
@@ -510,20 +485,19 @@ A类：10.0.0.0-10.255.255.255</p>
 
 <p><strong>注意</strong>：记录该命令的输出内容，方便下面的步骤使用</p>
 
-<ol>
-<li><p>执行以下命令来配置kubectl （此命令是<code>kubeadm init</code>的输出内容）:</p>
+<p>执行以下命令来配置kubectl （此命令是<code>kubeadm init</code>的输出内容）:</p>
 
 <pre><code class="language-shell">mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-</code></pre></li>
+</code></pre>
 
-<li><p>使用以下命令安装Calico：</p>
+<p>使用以下命令安装Calico：</p>
 
 <pre><code class="language-shell">kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
-</code></pre></li>
+</code></pre>
 
-<li><p>使用命令<code>kubectl get pods --all-namespaces</code>查看每个pod的状态，
+<p>使用命令<code>kubectl get pods --all-namespaces</code>查看每个pod的状态，
 等待一段时间，直到pod的状态均为<code>Running</code>，即代表配置成功。如下所示：</p>
 
 <pre><code class="language-shell">NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
@@ -537,8 +511,7 @@ kube-system   kube-controller-manager-yuxiaobo-ubuntu    1/1     Running   0    
 kube-system   kube-proxy-6mxnd                           1/1     Running   0          75m
 kube-system   kube-scheduler-yuxiaobo-ubuntu             1/1     Running   0          74m
 
-</code></pre></li>
-</ol>
+</code></pre>
 
 <h3 id="将node节点加入集群">将node节点加入集群</h3>
 
@@ -555,36 +528,32 @@ kubeadm token create # 如果token已过期，则重新创建
 <pre><code class="language-shell">openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
 </code></pre>
 
-<ol>
-<li><p>查看之前<code>kubeadm init</code>输出的最后一行内容（以下是本集群初始化后生成的内容），即为加入节点的命令：</p>
+<p>查看之前<code>kubeadm init</code>输出的最后一行内容（以下是本集群初始化后生成的内容），即为加入节点的命令：</p>
 
 <pre><code class="language-shell">kubeadm join 192.168.1.177:6443 --token sm6uji.x9ze9c54qopm4r3c \
---discovery-token-ca-cert-hash sha256:ff2a7cb4df8dc6e4767051e8a69f14837a0a3ef8164f8c2d52a8970f6463d069
-</code></pre></li>
+    --discovery-token-ca-cert-hash sha256:ff2a7cb4df8dc6e4767051e8a69f14837a0a3ef8164f8c2d52a8970f6463d069
+</code></pre>
 
-<li><p>在node节点上执行该命令：</p>
+<p>在node节点上执行该命令：</p>
 
 <pre><code class="language-shell">kubeadm join 192.168.1.177:6443 --token sm6uji.x9ze9c54qopm4r3c \
---discovery-token-ca-cert-hash sha256:ff2a7cb4df8dc6e4767051e8a69f14837a0a3ef8164f8c2d52a8970f6463d069
-</code></pre></li>
+    --discovery-token-ca-cert-hash sha256:ff2a7cb4df8dc6e4767051e8a69f14837a0a3ef8164f8c2d52a8970f6463d069
+</code></pre>
 
-<li><p>等待5分钟，查看集群状态（仅master）</p>
+<p>等待5分钟，查看集群状态（仅master）</p>
 
 <pre><code class="language-shell">kubectl get pods
-</code></pre></li>
-</ol>
+</code></pre>
 
 <p><strong>注意</strong>：在加入节点前，需要检查node机器是否可以与master主机的网络通信。</p>
 
 <p>综上，使用kubeadm搭建多节点k8s集群完成。</p>
 
-<ol>
-<li><p>若想在node节点上控制集群，需将控制平面节点（即master节点）上的 <code>/etc/kubernetes/admin.conf</code>文件复制到 node 节点上（此<code>admin.conf</code>文件为用户提供对集群的超级用户特权），命令如下：</p>
+<p>若想在node节点上控制集群，需将控制平面节点（即master节点）上的 <code>/etc/kubernetes/admin.conf</code>文件复制到 node 节点上（此<code>admin.conf</code>文件为用户提供对集群的超级用户特权），命令如下：</p>
 
 <pre><code class="language-shell">cd /etc/kubernetes
 scp admin.conf root@node-host-ip:/etc/kubernetes/admin.conf
-</code></pre></li>
-</ol>
+</code></pre>
 
 <p><strong>注意</strong>：<code>admin.conf</code>有文件权限的限制，所以需要先使用 chomd 改变文件的权限，再进行复制</p>
 
@@ -594,9 +563,7 @@ scp admin.conf root@node-host-ip:/etc/kubernetes/admin.conf
 
 <h3 id="其他问题">其他问题</h3>
 
-<ol>
-<li>以下是搭建过程中需要的工具或者一些疑问解答</li>
-</ol>
+<p>以下是搭建过程中需要的工具或者一些疑问解答</p>
 
 <ul>
 <li>阿里云镜像仓库地址：</li>
@@ -651,7 +618,7 @@ E: 无法定位软件包 kubeadm
 
     <div class="post-nav">
         
-        <a href="https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/" class="prev" rel="prev" title="使用helm安装Istio"><i class="iconfont icon-left"></i>&nbsp;使用helm安装Istio</a>
+        <a href="https://yuxiaobo96.github.io/2019/install-istio-with-helm/" class="prev" rel="prev" title="使用helm安装Istio"><i class="iconfont icon-left"></i>&nbsp;使用helm安装Istio</a>
          
         
     </div>

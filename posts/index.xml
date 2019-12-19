@@ -17,15 +17,15 @@
       <pubDate>Thu, 19 Dec 2019 17:18:02 +0800</pubDate>
       
       <guid>https://yuxiaobo96.github.io/2019/install-kubernetes-with-kubeadm/</guid>
-      <description>在 virtualbox 上安装 ubuntu 虚拟机 教程很多，自行百度 这里贴一个相对完善的教程链接 安装 virtualbox 及 ubuntu 虚拟机 ubuntu 桌面版最新版下载地址 Ubuntu 18.04.3 LTS 在教程中有与主机共享文件夹这一步</description>
+      <description>在 virtualbox 上安装 ubuntu 虚拟机 教程很多，自行百度， 这里贴一个相对完善的教程链接 安装 virtualbox 及 ubuntu 虚拟机 ubuntu 桌面版最新版下载地址 Ubuntu 18.04.3 LTS 注意：在安装虚拟机时，可能会遇</description>
     </item>
     
     <item>
       <title>使用helm安装Istio</title>
-      <link>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</link>
+      <link>https://yuxiaobo96.github.io/2019/install-istio-with-helm/</link>
       <pubDate>Wed, 11 Dec 2019 10:11:09 +0800</pubDate>
       
-      <guid>https://yuxiaobo96.github.io/2019/%E4%BD%BF%E7%94%A8helm%E5%AE%89%E8%A3%85istio/</guid>
+      <guid>https://yuxiaobo96.github.io/2019/install-istio-with-helm/</guid>
       <description>在 Istio 官网 介绍了使用不同的方式安装 Istio，但是很多细节没有说明。 这篇文档介绍，使用 helm 在 k8s 集群上部署 istio，并演示 Bookinfo 示例。 下载并安装 Istio 下</description>
     </item>
     
