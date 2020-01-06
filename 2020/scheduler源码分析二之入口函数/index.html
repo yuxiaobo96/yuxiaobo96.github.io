@@ -46,7 +46,7 @@
     "articleSection" : "posts",
     "name" : "Scheduler源码分析二之入口函数",
     "headline" : "Scheduler源码分析二之入口函数",
-    "description" : "kube-scheduler 源码分析之入口函数 scheduler的源码主要存放在两个文件夹下： \/cmd\/kube-scheduler\/，是scheduler的入口函数",
+    "description" : "scheduler的源码主要存放在两个文件夹下： \/cmd\/kube-scheduler\/，是scheduler的入口函数，文件结构如下： kube-scheduler ├",
     "inLanguage" : "zh-cn",
     "author" : "Yuxiaobo",
     "creator" : "Yuxiaobo",
@@ -57,7 +57,7 @@
     "datePublished": "2020-01-06 17:14:26 \x2b0800 CST",
     "dateModified" : "2020-01-06 17:14:26 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2020\/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%BA%8C%E4%B9%8B%E5%85%A5%E5%8F%A3%E5%87%BD%E6%95%B0\/",
-    "wordCount" : "4098",
+    "wordCount" : "4088",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 4098 words</span>
+                <span class="post-word-count">, 4088 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -150,8 +150,6 @@
           
 
           
-
-<h2 id="kube-scheduler-源码分析之入口函数">kube-scheduler 源码分析之入口函数</h2>
 
 <p>scheduler的源码主要存放在两个文件夹下：</p>
 
@@ -219,7 +217,7 @@ if err := command.Execute(); err != nil {
 	}
 </code></pre>
 
-<h2 id="1-1-newschedulercommand">1.1 NewSchedulerCommand()</h2>
+<h3 id="1-1-newschedulercommand">1.1 NewSchedulerCommand()</h3>
 
 <blockquote>
 <p>代码在<code>/cmd/kube-scheduler/app/server.go</code></p>
@@ -284,7 +282,7 @@ opts, err := options.NewOptions()
 err := runCommand
 </code></pre>
 
-<h2 id="1-1-1-newoptions">1.1.1 NewOptions</h2>
+<h3 id="1-1-1-newoptions">1.1.1 NewOptions</h3>
 
 <blockquote>
 <p>代码在<code>/cmd/kube-scheduler/app/options/options.go</code></p>
@@ -343,7 +341,7 @@ func NewOptions() (*Options, error) {
 
 <p>在第3行中的<code>newDefaultComponentConfig()</code>点进去就会发现调用的是<code>KubeSchedulerConfiguration</code>结构体</p>
 
-<h2 id="1-1-2-runcommand">1.1.2 runCommand</h2>
+<h3 id="1-1-2-runcommand">1.1.2 runCommand</h3>
 
 <blockquote>
 <p>代码在<code>/cmd/kube-scheduler/app/server.go</code></p>
@@ -615,7 +613,7 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig, outOfTre
 
 <p>核心源码介绍：</p>
 
-<h2 id="2-1-outoftreeregistry">2.1 outOfTreeRegistry</h2>
+<h3 id="2-1-outoftreeregistry">2.1 outOfTreeRegistry</h3>
 
 <p>第6行，创建Registry(注册表)，其中包含所有可用的plugins，并控制这些plugin的启动和初始化。</p>
 
@@ -627,7 +625,7 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig, outOfTre
 	}
 </code></pre>
 
-<h2 id="2-1-1-registry">2.1.1 Registry</h2>
+<h3 id="2-1-1-registry">2.1.1 Registry</h3>
 
 <blockquote>
 <p>代码在<code>/pkg/scheduler/framework/v1alpha1/registry.go</code></p>
@@ -693,7 +691,7 @@ func (r Registry) Merge(in Registry) error {
 
 <p>注释讲解很清晰，不再赘述。</p>
 
-<h2 id="2-2-scheduler-new">2.2 scheduler.New</h2>
+<h3 id="2-2-scheduler-new">2.2 scheduler.New</h3>
 
 <p>第22行，创建scheduler结构体，其中包含scheduler调度逻辑执行过程中需要的所有参数和配置。</p>
 
@@ -731,16 +729,16 @@ func (r Registry) Merge(in Registry) error {
 <li><p>从第7行开始到最后，调用的是<code>cc.ComponentConfig</code>中的参数，即是<code>KubeSchedulerConfiguration</code>结构体：用来配置scheduler</p></li>
 </ul>
 
-<h2 id="2-3-informerfactory-start">2.3 InformerFactory.Start</h2>
+<h3 id="2-3-informerfactory-start">2.3 InformerFactory.Start</h3>
 
-<p>第80行，启动所有informers，包括PodInformer、InformerFactory，主要涉及到informer，请参阅<a href="https://github.com/kube-incubator/kube-explorer/blob/master/content/kube-scheduler/informer.md" rel="nofollow noreferrer" target="_blank">informer机制</a></p>
+<p>第80行，启动所有informers，包括PodInformer、InformerFactory，主要涉及到informer，请参阅<a href="https://yuxiaobo96.github.io/2020/informer%E6%9C%BA%E5%88%B6/" rel="nofollow noreferrer" target="_blank">informer机制</a></p>
 
 <pre><code class="language-go">	// Start all informers.
 	go cc.PodInformer.Informer().Run(ctx.Done())
 	cc.InformerFactory.Start(ctx.Done())
 </code></pre>
 
-<h2 id="2-4-waitforcachesync">2.4 WaitForCacheSync</h2>
+<h3 id="2-4-waitforcachesync">2.4 WaitForCacheSync</h3>
 
 <p>第84行，在调度逻辑执行前，需等到所有的caches同步</p>
 
@@ -748,9 +746,9 @@ func (r Registry) Merge(in Registry) error {
 	cc.InformerFactory.WaitForCacheSync(ctx.Done())
 </code></pre>
 
-<p>在这一步，涉及到reflector(反射器)、apiserver、etcd、store等的关系，一并在<a href="https://github.com/kube-incubator/kube-explorer/blob/master/content/kube-scheduler/informer.md" rel="nofollow noreferrer" target="_blank">informer机制</a>中讲解</p>
+<p>在这一步，涉及到reflector(反射器)、apiserver、etcd、store等的关系，一并在<a href="https://yuxiaobo96.github.io/2020/informer%E6%9C%BA%E5%88%B6/" rel="nofollow noreferrer" target="_blank">informer机制</a>中讲解</p>
 
-<h2 id="2-5-sched-run">2.5 sched.Run</h2>
+<h3 id="2-5-sched-run">2.5 sched.Run</h3>
 
 <p>第106行，等待cache同步完成后，开始执行调度逻辑。</p>
 
