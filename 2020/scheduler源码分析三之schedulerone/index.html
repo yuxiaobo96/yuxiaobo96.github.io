@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="Yuxiaobo">
+  
+  
+  
+  <link rel="prev" href="https://yuxiaobo96.github.io/2020/informer%E6%9C%BA%E5%88%B6/" />
+  
+  <link rel="canonical" href="https://yuxiaobo96.github.io/2020/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Scheduler源码分析三之schedulerOne | 将夜泊行
+       
+  </title>
+  <meta name="title" content="Scheduler源码分析三之schedulerOne | 将夜泊行">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https:\/\/yuxiaobo96.github.io\/"
+    },
+    "articleSection" : "posts",
+    "name" : "Scheduler源码分析三之schedulerOne",
+    "headline" : "Scheduler源码分析三之schedulerOne",
+    "description" : "kube-scheduler源码分析二之schedulerOne调度逻辑 scheduler源码存放的另一个文件夹： \/pkg\/schedule",
+    "inLanguage" : "zh-cn",
+    "author" : "Yuxiaobo",
+    "creator" : "Yuxiaobo",
+    "publisher": "Yuxiaobo",
+    "accountablePerson" : "Yuxiaobo",
+    "copyrightHolder" : "Yuxiaobo",
+    "copyrightYear" : "2020",
+    "datePublished": "2020-01-08 18:38:26 \x2b0800 CST",
+    "dateModified" : "2020-01-08 18:38:26 \x2b0800 CST",
+    "url" : "https:\/\/yuxiaobo96.github.io\/2020\/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone\/",
+    "wordCount" : "1794",
+    "keywords" : [  "将夜泊行"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+        
+        <div class="top-scroll-bar"></div>
+    
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://yuxiaobo96.github.io/">将夜泊行</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+        
+        <div class="top-scroll-bar"></div>
+    
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://yuxiaobo96.github.io/">将夜泊行</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Scheduler源码分析三之schedulerOne</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://yuxiaobo96.github.io/" rel="author">Yuxiaobo</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2020-01-08 itemprop="datePublished">January 8, 2020</time>
+                </span>
+                in
+                
+                <span class="post-word-count">, 1794 words</span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h1 id="kube-scheduler源码分析二之schedulerone调度逻辑">kube-scheduler源码分析二之schedulerOne调度逻辑</h1>
+
+<p>scheduler源码存放的另一个文件夹：</p>
+
+<p><code>/pkg/scheduler/</code>，包含scheduler的核心代码，执行scheduler的调度逻辑。文件机构如下：</p>
+
+<pre><code class="language-shell">scheduler
+├── algorithm     # 包含scheduler的调度算法
+│   ├── BUILD
+│   ├── doc.go
+│   ├── predicates     # 预选策略
+│   ├── priorities     # 优选策略
+│   ├── scheduler_interface.go     # 定义SchedulerExtender接口
+│   └── types.go
+├── algorithm_factory.go
+├── algorithm_factory_test.go
+├── algorithmprovider
+│   ├── BUILD
+│   ├── defaults     # 初始化默认算法，包括预选和优选策略
+│   ├── plugins.go     # 通过feature gates 应用算法
+│   ├── plugins_test.go
+│   ├── registry.go     # 注册表：是所有可用的algorithm providers的集合
+│   └── registry_test.go
+├── api
+│   ├── BUILD
+│   └── well_known_labels.go     # 外部云供应商在node上设置taint
+├── apis
+│   ├── config     # kubescheduler调度逻辑所需要的配置
+│   └── extender
+├── BUILD
+├── core     # scheduler的核心代码
+│   ├── BUILD
+│   ├── extender.go     # 用户配置extender的一系列函数
+│   ├── extender_test.go
+│   ├── generic_scheduler.go     # 包含调度器的调度逻辑，后面会详细介绍
+│   └── generic_scheduler_test.go
+├── eventhandlers.go
+├── eventhandlers_test.go
+├── factory.go
+├── factory_test.go
+├── framework     # framework框架
+│   ├── BUILD
+│   ├── plugins     # 包含一系列的plugins，用于校验和过滤
+│   └── v1alpha1     # framework的架构设计，包括配置参数及调用plugins
+├── internal     # scheduler调度时，使用到的内部资源或工具
+│   ├── cache     # scheduler 缓存
+│   ├── heap     # heap 主要作用于items
+│   └── queue     # 队列，在pod调度前，在队列中排序，通过pop推出pod进行调度
+├── listers     # 获取pod和node的信息及表单list
+│   ├── BUILD
+│   ├── fake
+│   ├── listers.go
+│   └── listers_test.go
+├── metrics     # 一系列指标，与prometheus交互使用
+│   ├── BUILD
+│   ├── metric_recorder.go
+│   ├── metric_recorder_test.go
+│   └── metrics.go
+├── nodeinfo     # 节点信息，包括节点上已有的pod、volume、taint、resource等
+│   ├── BUILD
+│   ├── host_ports.go
+│   ├── host_ports_test.go
+│   ├── node_info.go
+│   ├── node_info_test.go
+│   └── snapshot    # 为节点创建快照
+├── OWNERS
+├── scheduler.go     # sched.Run的入口函数及schedulerOne的调度逻辑
+├── scheduler_test.go
+├── testing     # 测试
+│   ├── BUILD
+│   ├── framework_helpers.go
+│   ├── workload_prep.go
+│   └── wrappers.go
+├── util
+│   ├── BUILD
+│   ├── clock.go
+│   ├── error_channel.go
+│   ├── error_channel_test.go
+│   ├── utils.go
+│   └── utils_test.go
+└── volumebinder     # 绑定 volume
+    ├── BUILD
+    └── volume_binder.go
+
+</code></pre>
+
+<h2 id="1-sched-run">1. sched.Run</h2>
+
+<blockquote>
+<p>代码在<code>pkg/scheduler/scheduler.go</code></p>
+</blockquote>
+
+<p>等待缓存同步后，开始scheduler调度逻辑，具体代码如下：</p>
+
+<pre><code class="language-go">// Run begins watching and scheduling. It waits for cache to be synced, then starts scheduling and blocked until the context is done.
+func (sched *Scheduler) Run(ctx context.Context) {
+	if !cache.WaitForCacheSync(ctx.Done(), sched.scheduledPodsHasSynced) {
+		return
+	}
+	sched.SchedulingQueue.Run()
+	wait.UntilWithContext(ctx, sched.scheduleOne, 0)
+	sched.SchedulingQueue.Close()
+}
+</code></pre>
+
+<p>1.1 第三行，调用<code>cache.WaitForCacheSync</code>函数，遍历<code>cacheSyncs</code>并使用bool值来判断同步是否完成，代码在<code>staging/src/k8s.io/client-go/tools/cache/shared_informer.go</code>，如下：</p>
+
+<pre><code class="language-go">// WaitForCacheSync waits for caches to populate.  It returns true if it was successful, false
+// if the controller should shutdown
+// callers should prefer WaitForNamedCacheSync()
+func WaitForCacheSync(stopCh &lt;-chan struct{}, cacheSyncs ...InformerSynced) bool {
+	err := wait.PollImmediateUntil(syncedPollPeriod,
+		func() (bool, error) {
+			for _, syncFunc := range cacheSyncs {
+				if !syncFunc() {
+					return false, nil
+				}
+			}
+			return true, nil
+		},
+		stopCh)
+	if err != nil {
+		klog.V(2).Infof(&quot;stop requested&quot;)
+		return false
+	}
+
+	klog.V(4).Infof(&quot;caches populated&quot;)
+	return true
+}
+</code></pre>
+
+<p>在同一文件下，<code>controller.WaitForNamedCacheSync</code>是对<code>cache.WaitForCacheSync</code>的一层封装，当<code>cache.WaitForCacheSync</code>函数同步失败时，找出不能同步缓存的cotroller名称，记录不同cotroller的缓存同步的日志。</p>
+
+<p><code>controller.WaitForNamedCacheSync</code>的代码如下：</p>
+
+<pre><code class="language-go">// WaitForNamedCacheSync is a wrapper around WaitForCacheSync that generates log messages
+// indicating that the caller identified by name is waiting for syncs, followed by
+// either a successful or failed sync.
+func WaitForNamedCacheSync(controllerName string, stopCh &lt;-chan struct{}, cacheSyncs ...InformerSynced) bool {
+	klog.Infof(&quot;Waiting for caches to sync for %s&quot;, controllerName)
+
+	if !WaitForCacheSync(stopCh, cacheSyncs...) {
+		utilruntime.HandleError(fmt.Errorf(&quot;unable to sync caches for %s&quot;, controllerName))
+		return false
+	}
+
+	klog.Infof(&quot;Caches are synced for %s &quot;, controllerName)
+	return true
+}
+</code></pre>
+
+<p>1.2 第六行<code>sched.SchedulingQueue.Run()</code>，使用队列存储pod，并开启goroutines管理队列</p>
+
+<p>1.3 第七行<code>sched.scheduleOne</code>，scheduler的调度逻辑，在标题2详细介绍。</p>
+
+<p>1.4 第八行<code>sched.SchedulingQueue.Close()</code>，关闭SchedulerQueue，等待队列 pop items，goroutine正常退出。</p>
+
+<p>这里与queue相关的函数和接口在<code>/pkg/scheduler/internal/queue/scheduling_queue.go</code>。</p>
+
+<h2 id="2-sched-scheduleone">2. sched.scheduleOne</h2>
+
+<blockquote>
+<p>代码在<code>/pkg/scheduler/scheduler.go</code></p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>Yuxiaobo </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://yuxiaobo96.github.io/2020/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone/>https://yuxiaobo96.github.io/2020/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone/</span>
+            </p>
+            
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://yuxiaobo96.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://yuxiaobo96.github.io/2020/informer%E6%9C%BA%E5%88%B6/" class="prev" rel="prev" title="Informer机制"><i class="iconfont icon-left"></i>&nbsp;Informer机制</a>
+         
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+        
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: 'cdf2110576d2e664531d',
+    clientSecret: '6a6c277a187f8ecef693d89e334a942aee820a96',
+    repo: 'yuxiaobo96.github.io',
+    owner: 'yuxiaobo96',
+    admin: ['yuxiaobo96'],
+    id: location.pathname, 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2019 - 2020</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://yuxiaobo96.github.io/">Yuxiaobo</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>
