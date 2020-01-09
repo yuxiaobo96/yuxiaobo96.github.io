@@ -57,7 +57,7 @@
     "datePublished": "2020-01-08 18:38:26 \x2b0800 CST",
     "dateModified" : "2020-01-08 18:38:26 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2020\/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone\/",
-    "wordCount" : "1794",
+    "wordCount" : "2541",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 1794 words</span>
+                <span class="post-word-count">, 2541 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -315,6 +315,22 @@ func WaitForNamedCacheSync(controllerName string, stopCh &lt;-chan struct{}, cac
 <blockquote>
 <p>代码在<code>/pkg/scheduler/scheduler.go</code></p>
 </blockquote>
+
+<p>这是单个pod调度的完整逻辑，其中主要逻辑为：先从队列中使用pop方式弹出pod，然后进行策略筛选（预选和优选策略，并找到最佳节点的host）。如果预选和优选策略失败，则判断是否开启抢占式调度，若开启则执行抢占式调度逻辑，经过这一系列的操作后选出最佳节点，执行绑定操作：先假设绑定，然后绑定volum，在所有的volume挂载并没有冲突后，进行真实绑定，在这个过程中使用到了许多的plugins的调用。</p>
+
+<p>深入进行预选和优选策略是上面完整逻辑的一部分，找到最佳节点的host很简单，只是编写一个排序函数，对选出的节点score进行排序，最高者胜出。</p>
+
+<p>预选策略（findNodesThatFit）：首先设置预选节点数组的容量，将节点存储到filter中，对过滤得到需要的节点数（以100为最大值，并使用百分比计数）进行限制，避免当集群内节点过多时，一一过滤浪费时间和资源。</p>
+
+<p>调用之前注册的预选策略对cache中的节点进行筛选，判断是否适合待调度的pod，如果符合，就加入到filter中，若失败就加入失败的数组并记录原因。</p>
+
+<p>直到filter中的节点数满足预设的节点数组容量，完成预选策略</p>
+
+<p>优选策略（prioritizeNodes）：是对预选策略筛选出的节点进行打分（使用注册的优选策略），并对这些节点的分数进行排序，得到一个节点分数的列表，</p>
+
+<p>这里的分数计算方法是：每个优先级函数都会对节点打分，每个优先级又有各自的权重，所以最后的总分是优先级函数对节点打的分数乘以函数的权重，再把所有优先级函数对同一节点的分数加起来的总和，并计算最后的加权平均数，即为节点的左后得分。</p>
+
+<p>得出最后的结果（selectHost）：利用这个函数对节点分数列表进行筛选，得出score最高的那个节点，并返回节点的host，可用的节点数。</p>
 
     </div>
 
