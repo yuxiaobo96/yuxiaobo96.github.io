@@ -17,7 +17,7 @@
       <pubDate>Wed, 08 Jan 2020 18:38:26 +0800</pubDate>
       
       <guid>https://yuxiaobo96.github.io/2020/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone/</guid>
-      <description>在本节主要讲述schedulerOne的基本调度流程，其中用到的预选调度策略、优选调度策略将在后几节介绍。 scheduler源码存放的另一个</description>
+      <description>在本节主要讲述schedulerOne的基本调度流程，其中用到的预选调度策略、优选调度策略、抢占策略将在后几节介绍。 scheduler源码存</description>
     </item>
     
     <item>
