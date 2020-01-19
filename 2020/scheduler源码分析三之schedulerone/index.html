@@ -46,7 +46,7 @@
     "articleSection" : "posts",
     "name" : "Scheduler源码分析三之schedulerOne",
     "headline" : "Scheduler源码分析三之schedulerOne",
-    "description" : "kube-scheduler源码分析二之schedulerOne调度逻辑 scheduler源码存放的另一个文件夹： \/pkg\/schedule",
+    "description" : "在本节主要讲述schedulerOne的基本调度流程，其中用到的预选调度策略、优选调度策略将在后几节介绍。 scheduler源码存放的另一个",
     "inLanguage" : "zh-cn",
     "author" : "Yuxiaobo",
     "creator" : "Yuxiaobo",
@@ -57,7 +57,7 @@
     "datePublished": "2020-01-08 18:38:26 \x2b0800 CST",
     "dateModified" : "2020-01-08 18:38:26 \x2b0800 CST",
     "url" : "https:\/\/yuxiaobo96.github.io\/2020\/scheduler%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%89%E4%B9%8Bschedulerone\/",
-    "wordCount" : "2541",
+    "wordCount" : "5566",
     "keywords" : [  "将夜泊行"]
 }
 </script>
@@ -130,7 +130,7 @@
                 </span>
                 in
                 
-                <span class="post-word-count">, 2541 words</span>
+                <span class="post-word-count">, 5566 words</span>
         </div>
     </header>
     <div class="post-content">
@@ -151,7 +151,7 @@
 
           
 
-<h1 id="kube-scheduler源码分析二之schedulerone调度逻辑">kube-scheduler源码分析二之schedulerOne调度逻辑</h1>
+<p>在本节主要讲述schedulerOne的基本调度流程，其中用到的预选调度策略、优选调度策略将在后几节介绍。</p>
 
 <p>scheduler源码存放的另一个文件夹：</p>
 
@@ -243,20 +243,19 @@
 <p>代码在<code>pkg/scheduler/scheduler.go</code></p>
 </blockquote>
 
-<p>等待缓存同步后，开始scheduler调度逻辑，具体代码如下：</p>
+<p>等待缓存同步后，开始scheduler调度逻辑，此处为具体调度逻辑的入口，代码如下：</p>
 
 <pre><code class="language-go">// Run begins watching and scheduling. It waits for cache to be synced, then starts scheduling and blocked until the context is done.
 func (sched *Scheduler) Run(ctx context.Context) {
 	if !cache.WaitForCacheSync(ctx.Done(), sched.scheduledPodsHasSynced) {
 		return
 	}
-	sched.SchedulingQueue.Run()
+
 	wait.UntilWithContext(ctx, sched.scheduleOne, 0)
-	sched.SchedulingQueue.Close()
 }
 </code></pre>
 
-<p>1.1 第三行，调用<code>cache.WaitForCacheSync</code>函数，遍历<code>cacheSyncs</code>并使用bool值来判断同步是否完成，代码在<code>staging/src/k8s.io/client-go/tools/cache/shared_informer.go</code>，如下：</p>
+<p>第3行，调用<code>cache.WaitForCacheSync</code>函数，遍历<code>cacheSyncs</code>并使用bool值来判断同步是否完成，代码在<code>staging/src/k8s.io/client-go/tools/cache/shared_informer.go</code>，如下：</p>
 
 <pre><code class="language-go">// WaitForCacheSync waits for caches to populate.  It returns true if it was successful, false
 // if the controller should shutdown
@@ -302,13 +301,13 @@ func WaitForNamedCacheSync(controllerName string, stopCh &lt;-chan struct{}, cac
 }
 </code></pre>
 
-<p>1.2 第六行<code>sched.SchedulingQueue.Run()</code>，使用队列存储pod，并开启goroutines管理队列</p>
+<p>第7行<code>sched.scheduleOne</code>，scheduler的调度逻辑，在标题2详细介绍。</p>
 
-<p>1.3 第七行<code>sched.scheduleOne</code>，scheduler的调度逻辑，在标题2详细介绍。</p>
+<p><del>第六行<code>sched.SchedulingQueue.Run()</code>，使用队列存储pod，并开启goroutines管理队列</del></p>
 
-<p>1.4 第八行<code>sched.SchedulingQueue.Close()</code>，关闭SchedulerQueue，等待队列 pop items，goroutine正常退出。</p>
+<p><del>第八行<code>sched.SchedulingQueue.Close()</code>，关闭SchedulerQueue，等待队列 pop items，goroutine正常退出。</del></p>
 
-<p>这里与queue相关的函数和接口在<code>/pkg/scheduler/internal/queue/scheduling_queue.go</code>。</p>
+<p><del>这里与queue相关的函数和接口在<code>/pkg/scheduler/internal/queue/scheduling_queue.go</code>。</del></p>
 
 <h2 id="2-sched-scheduleone">2. sched.scheduleOne</h2>
 
@@ -316,21 +315,542 @@ func WaitForNamedCacheSync(controllerName string, stopCh &lt;-chan struct{}, cac
 <p>代码在<code>/pkg/scheduler/scheduler.go</code></p>
 </blockquote>
 
-<p>这是单个pod调度的完整逻辑，其中主要逻辑为：先从队列中使用pop方式弹出pod，然后进行策略筛选（预选和优选策略，并找到最佳节点的host）。如果预选和优选策略失败，则判断是否开启抢占式调度，若开启则执行抢占式调度逻辑，经过这一系列的操作后选出最佳节点，执行绑定操作：先假设绑定，然后绑定volum，在所有的volume挂载并没有冲突后，进行真实绑定，在这个过程中使用到了许多的plugins的调用。</p>
+<p><code>scheduleOne()</code>函数是对pod调度的完整逻辑：</p>
 
-<p>深入进行预选和优选策略是上面完整逻辑的一部分，找到最佳节点的host很简单，只是编写一个排序函数，对选出的节点score进行排序，最高者胜出。</p>
+<ol>
+<li>先从队列中使用pop方式弹出需要调度的pod</li>
+<li>通过具体的调度策略（预选和优选策略）为该pod筛选出合适的节点</li>
+<li>如果上述调度策略失败，则执行抢占式调度逻辑，经过这一系列的操作后选出最佳节点。</li>
+<li>将pod设置为assumed状态（与选中的节点进行假性绑定），并执行reserve操作（在选中的节点上为该pod预留资源）</li>
+<li>在假性绑定后，继续调度其他的pod。这里注意：pod的调度是同步的，即同一时间只能调度一个pod;而在pod的绑定阶段是异步的,即同一时间可以同时绑定多个pod</li>
+<li>调用<code>sched.bind()</code>函数，执行真实绑定，将pod调度到选中的节点上，交给kubelet进行初始化和管理。</li>
+<li>绑定结果返回后，将通知cache该pod的绑定已经结束并将结果反馈给apiserver；如果绑定失败，从缓存中删除该pod，并触发unreserve机制，释放节点中为该pod预留的资源。</li>
+</ol>
 
-<p>预选策略（findNodesThatFit）：首先设置预选节点数组的容量，将节点存储到filter中，对过滤得到需要的节点数（以100为最大值，并使用百分比计数）进行限制，避免当集群内节点过多时，一一过滤浪费时间和资源。</p>
+<p>在这个调度逻辑中，还穿插着不同的plugins对pod与node进行过滤，包括QueueSortPlugin、scorePlugins、reservePlugins等。</p>
 
-<p>调用之前注册的预选策略对cache中的节点进行筛选，判断是否适合待调度的pod，如果符合，就加入到filter中，若失败就加入失败的数组并记录原因。</p>
+<p>schedulerOne的具体代码如下：</p>
 
-<p>直到filter中的节点数满足预设的节点数组容量，完成预选策略</p>
+<pre><code class="language-go">// scheduleOne does the entire scheduling workflow for a single pod.  It is serialized on the scheduling algorithm's host fitting.
+func (sched *Scheduler) scheduleOne(ctx context.Context) {
+	fwk := sched.Framework
 
-<p>优选策略（prioritizeNodes）：是对预选策略筛选出的节点进行打分（使用注册的优选策略），并对这些节点的分数进行排序，得到一个节点分数的列表，</p>
+	podInfo := sched.NextPod()
+	// pod could be nil when schedulerQueue is closed
+	if podInfo == nil || podInfo.Pod == nil {
+		return
+	}
+	pod := podInfo.Pod
+	if pod.DeletionTimestamp != nil {
+		sched.Recorder.Eventf(pod, nil, v1.EventTypeWarning, &quot;FailedScheduling&quot;, &quot;Scheduling&quot;, &quot;skip schedule deleting pod: %v/%v&quot;, pod.Namespace, pod.Name)
+		klog.V(3).Infof(&quot;Skip schedule deleting pod: %v/%v&quot;, pod.Namespace, pod.Name)
+		return
+	}
 
-<p>这里的分数计算方法是：每个优先级函数都会对节点打分，每个优先级又有各自的权重，所以最后的总分是优先级函数对节点打的分数乘以函数的权重，再把所有优先级函数对同一节点的分数加起来的总和，并计算最后的加权平均数，即为节点的左后得分。</p>
+	klog.V(3).Infof(&quot;Attempting to schedule pod: %v/%v&quot;, pod.Namespace, pod.Name)
 
-<p>得出最后的结果（selectHost）：利用这个函数对节点分数列表进行筛选，得出score最高的那个节点，并返回节点的host，可用的节点数。</p>
+	// Synchronously attempt to find a fit for the pod.
+	start := time.Now()
+	state := framework.NewCycleState()
+	state.SetRecordFrameworkMetrics(rand.Intn(100) &lt; frameworkMetricsSamplePercent)
+	schedulingCycleCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	scheduleResult, err := sched.Algorithm.Schedule(schedulingCycleCtx, state, pod)
+	if err != nil {
+		sched.recordSchedulingFailure(podInfo.DeepCopy(), err, v1.PodReasonUnschedulable, err.Error())
+		// Schedule() may have failed because the pod would not fit on any host, so we try to
+		// preempt, with the expectation that the next time the pod is tried for scheduling it
+		// will fit due to the preemption. It is also possible that a different pod will schedule
+		// into the resources that were preempted, but this is harmless.
+		if fitError, ok := err.(*core.FitError); ok {
+			if sched.DisablePreemption {
+				klog.V(3).Infof(&quot;Pod priority feature is not enabled or preemption is disabled by scheduler configuration.&quot; +
+					&quot; No preemption is performed.&quot;)
+			} else {
+				preemptionStartTime := time.Now()
+				sched.preempt(schedulingCycleCtx, state, fwk, pod, fitError)
+				metrics.PreemptionAttempts.Inc()
+				metrics.SchedulingAlgorithmPreemptionEvaluationDuration.Observe(metrics.SinceInSeconds(preemptionStartTime))
+				metrics.DeprecatedSchedulingAlgorithmPreemptionEvaluationDuration.Observe(metrics.SinceInMicroseconds(preemptionStartTime))
+				metrics.SchedulingLatency.WithLabelValues(metrics.PreemptionEvaluation).Observe(metrics.SinceInSeconds(preemptionStartTime))
+				metrics.DeprecatedSchedulingLatency.WithLabelValues(metrics.PreemptionEvaluation).Observe(metrics.SinceInSeconds(preemptionStartTime))
+			}
+			// Pod did not fit anywhere, so it is counted as a failure. If preemption
+			// succeeds, the pod should get counted as a success the next time we try to
+			// schedule it. (hopefully)
+			metrics.PodScheduleFailures.Inc()
+		} else {
+			klog.Errorf(&quot;error selecting node for pod: %v&quot;, err)
+			metrics.PodScheduleErrors.Inc()
+		}
+		return
+	}
+	metrics.SchedulingAlgorithmLatency.Observe(metrics.SinceInSeconds(start))
+	metrics.DeprecatedSchedulingAlgorithmLatency.Observe(metrics.SinceInMicroseconds(start))
+	// Tell the cache to assume that a pod now is running on a given node, even though it hasn't been bound yet.
+	// This allows us to keep scheduling without waiting on binding to occur.
+	assumedPodInfo := podInfo.DeepCopy()
+	assumedPod := assumedPodInfo.Pod
+
+	// Assume volumes first before assuming the pod.
+	//
+	// If all volumes are completely bound, then allBound is true and binding will be skipped.
+	//
+	// Otherwise, binding of volumes is started after the pod is assumed, but before pod binding.
+	//
+	// This function modifies 'assumedPod' if volume binding is required.
+	allBound, err := sched.VolumeBinder.Binder.AssumePodVolumes(assumedPod, scheduleResult.SuggestedHost)
+	if err != nil {
+		sched.recordSchedulingFailure(assumedPodInfo, err, SchedulerError,
+			fmt.Sprintf(&quot;AssumePodVolumes failed: %v&quot;, err))
+		metrics.PodScheduleErrors.Inc()
+		return
+	}
+
+	// Run &quot;reserve&quot; plugins.
+	if sts := fwk.RunReservePlugins(schedulingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost); !sts.IsSuccess() {
+		sched.recordSchedulingFailure(assumedPodInfo, sts.AsError(), SchedulerError, sts.Message())
+		metrics.PodScheduleErrors.Inc()
+		return
+	}
+
+	// assume modifies `assumedPod` by setting NodeName=scheduleResult.SuggestedHost
+	err = sched.assume(assumedPod, scheduleResult.SuggestedHost)
+	if err != nil {
+		// This is most probably result of a BUG in retrying logic.
+		// We report an error here so that pod scheduling can be retried.
+		// This relies on the fact that Error will check if the pod has been bound
+		// to a node and if so will not add it back to the unscheduled pods queue
+		// (otherwise this would cause an infinite loop).
+		sched.recordSchedulingFailure(assumedPodInfo, err, SchedulerError, fmt.Sprintf(&quot;AssumePod failed: %v&quot;, err))
+		metrics.PodScheduleErrors.Inc()
+		// trigger un-reserve plugins to clean up state associated with the reserved Pod
+		fwk.RunUnreservePlugins(schedulingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+		return
+	}
+	// bind the pod to its host asynchronously (we can do this b/c of the assumption step above).
+	go func() {
+		bindingCycleCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		metrics.SchedulerGoroutines.WithLabelValues(&quot;binding&quot;).Inc()
+		defer metrics.SchedulerGoroutines.WithLabelValues(&quot;binding&quot;).Dec()
+
+		// Run &quot;permit&quot; plugins.
+		permitStatus := fwk.RunPermitPlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+		if !permitStatus.IsSuccess() {
+			var reason string
+			if permitStatus.IsUnschedulable() {
+				metrics.PodScheduleFailures.Inc()
+				reason = v1.PodReasonUnschedulable
+			} else {
+				metrics.PodScheduleErrors.Inc()
+				reason = SchedulerError
+			}
+			if forgetErr := sched.Cache().ForgetPod(assumedPod); forgetErr != nil {
+				klog.Errorf(&quot;scheduler cache ForgetPod failed: %v&quot;, forgetErr)
+			}
+			// trigger un-reserve plugins to clean up state associated with the reserved Pod
+			fwk.RunUnreservePlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+			sched.recordSchedulingFailure(assumedPodInfo, permitStatus.AsError(), reason, permitStatus.Message())
+			return
+		}
+
+		// Bind volumes first before Pod
+		if !allBound {
+			err := sched.bindVolumes(assumedPod)
+			if err != nil {
+				sched.recordSchedulingFailure(assumedPodInfo, err, &quot;VolumeBindingFailed&quot;, err.Error())
+				metrics.PodScheduleErrors.Inc()
+				// trigger un-reserve plugins to clean up state associated with the reserved Pod
+				fwk.RunUnreservePlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+				return
+			}
+		}
+
+		// Run &quot;prebind&quot; plugins.
+		preBindStatus := fwk.RunPreBindPlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+		if !preBindStatus.IsSuccess() {
+			var reason string
+			metrics.PodScheduleErrors.Inc()
+			reason = SchedulerError
+			if forgetErr := sched.Cache().ForgetPod(assumedPod); forgetErr != nil {
+				klog.Errorf(&quot;scheduler cache ForgetPod failed: %v&quot;, forgetErr)
+			}
+			// trigger un-reserve plugins to clean up state associated with the reserved Pod
+			fwk.RunUnreservePlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+			sched.recordSchedulingFailure(assumedPodInfo, preBindStatus.AsError(), reason, preBindStatus.Message())
+			return
+		}
+
+		err := sched.bind(bindingCycleCtx, assumedPod, scheduleResult.SuggestedHost, state)
+		metrics.E2eSchedulingLatency.Observe(metrics.SinceInSeconds(start))
+		metrics.DeprecatedE2eSchedulingLatency.Observe(metrics.SinceInMicroseconds(start))
+		if err != nil {
+			metrics.PodScheduleErrors.Inc()
+			// trigger un-reserve plugins to clean up state associated with the reserved Pod
+			fwk.RunUnreservePlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+			sched.recordSchedulingFailure(assumedPodInfo, err, SchedulerError, fmt.Sprintf(&quot;Binding rejected: %v&quot;, err))
+		} else {
+			// Calculating nodeResourceString can be heavy. Avoid it if klog verbosity is below 2.
+			if klog.V(2) {
+				klog.Infof(&quot;pod %v/%v is bound successfully on node %q, %d nodes evaluated, %d nodes were found feasible.&quot;, assumedPod.Namespace, assumedPod.Name, scheduleResult.SuggestedHost, scheduleResult.EvaluatedNodes, scheduleResult.FeasibleNodes)
+			}
+
+			metrics.PodScheduleSuccesses.Inc()
+			metrics.PodSchedulingAttempts.Observe(float64(podInfo.Attempts))
+			metrics.PodSchedulingDuration.Observe(metrics.SinceInSeconds(podInfo.InitialAttemptTimestamp))
+
+			// Run &quot;postbind&quot; plugins.
+			fwk.RunPostBindPlugins(bindingCycleCtx, state, assumedPod, scheduleResult.SuggestedHost)
+		}
+	}()
+}
+</code></pre>
+
+<p>在下面对<code>scheduleOne()</code>函数中的重要代码进行分析</p>
+
+<h2 id="3-sched-framework">3. sched.Framework</h2>
+
+<p>第3行，<code>fwk := sched.Framework</code>是声明一些与scheduler相关的plugins作为扩展点</p>
+
+<h2 id="4-nextpod">4. NextPod</h2>
+
+<p>第5行，<code>sched.NextPod()</code>，pod通过queue的方式进行存储，NextPod用来取出下一个待调度的pod。pod的调度队列也是一个核心知识点，将在后续介绍。</p>
+
+<pre><code class="language-go">podInfo := sched.NextPod()
+	// pod could be nil when schedulerQueue is closed
+	if podInfo == nil || podInfo.Pod == nil {
+		return
+	}
+	pod := podInfo.Pod
+	if pod.DeletionTimestamp != nil {
+		sched.Recorder.Eventf(pod, nil, v1.EventTypeWarning, &quot;FailedScheduling&quot;, &quot;Scheduling&quot;, &quot;skip schedule deleting pod: %v/%v&quot;, pod.Namespace, pod.Name)
+		klog.V(3).Infof(&quot;Skip schedule deleting pod: %v/%v&quot;, pod.Namespace, pod.Name)
+		return
+	}
+</code></pre>
+
+<p>其中：在第7行，<code>pod.DeletionTimestamp</code>，检查要调度的pod的时间戳，如果pod的<code>DeletionTimestamp</code>不为空，则直接返回，因为这个pod已经被下达了删除命令，不需要进行调度。</p>
+
+<h3 id="5-设定预选的节点数量">5. 设定预选的节点数量</h3>
+
+<p>在第19行，代码如下：</p>
+
+<pre><code class="language-go">// Synchronously attempt to find a fit for the pod.
+	start := time.Now()
+	state := framework.NewCycleState()
+	state.SetRecordFrameworkMetrics(rand.Intn(100) &lt; frameworkMetricsSamplePercent)
+	schedulingCycleCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+</code></pre>
+
+<p>在开始调度pod之前，先设置筛选出节点的容量，这种做法是为了避免：当集群内的节点过多时，将所有节点过滤一遍，浪费资源和时间。可以看到代码里使用的percent（百分比）的概念，进入到<code>frameworkMetricsSamplePercent</code>常量后，可以发现：</p>
+
+<pre><code class="language-go">// Percentage of framework metrics to be sampled.
+	frameworkMetricsSamplePercent = 10
+</code></pre>
+
+<p>这里将节点的筛选百分比设置成百分之十，有以下几种情况：</p>
+
+<ol>
+<li>当节点数过多并超过100时，只筛选这些节点总数的百分之十作为最后筛选出的节点。</li>
+<li>当节点数小于100时，则将所有节点筛选一遍</li>
+</ol>
+
+<h2 id="6-sched-algorithm-schedule">6. sched.Algorithm.Schedule</h2>
+
+<p>第25行，此处是scheduelr两个调度策略（预选和优选策略）的核心逻辑。</p>
+
+<blockquote>
+<p>代码在<code>/pkg/scheduler/core/generic_scheduler.go</code></p>
+</blockquote>
+
+<p>具体代码如下：</p>
+
+<pre><code class="language-go">// Schedule tries to schedule the given pod to one of the nodes in the node list.
+// If it succeeds, it will return the name of the node.
+// If it fails, it will return a FitError error with reasons.
+func (g *genericScheduler) Schedule(ctx context.Context, state *framework.CycleState, pod *v1.Pod) (result ScheduleResult, err error) {
+	trace := utiltrace.New(&quot;Scheduling&quot;, utiltrace.Field{Key: &quot;namespace&quot;, Value: pod.Namespace}, utiltrace.Field{Key: &quot;name&quot;, Value: pod.Name})
+	defer trace.LogIfLong(100 * time.Millisecond)
+
+	if err := podPassesBasicChecks(pod, g.pvcLister); err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Basic checks done&quot;)
+
+	if err := g.snapshot(); err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Snapshoting scheduler cache and node infos done&quot;)
+
+	if len(g.nodeInfoSnapshot.NodeInfoList) == 0 {
+		return result, ErrNoNodesAvailable
+	}
+
+	// Run &quot;prefilter&quot; plugins.
+	preFilterStatus := g.framework.RunPreFilterPlugins(ctx, state, pod)
+	if !preFilterStatus.IsSuccess() {
+		return result, preFilterStatus.AsError()
+	}
+	trace.Step(&quot;Running prefilter plugins done&quot;)
+
+	startPredicateEvalTime := time.Now()
+	filteredNodes, failedPredicateMap, filteredNodesStatuses, err := g.findNodesThatFit(ctx, state, pod)
+	if err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Computing predicates done&quot;)
+
+	// Run &quot;postfilter&quot; plugins.
+	postfilterStatus := g.framework.RunPostFilterPlugins(ctx, state, pod, filteredNodes, filteredNodesStatuses)
+	if !postfilterStatus.IsSuccess() {
+		return result, postfilterStatus.AsError()
+	}
+
+	if len(filteredNodes) == 0 {
+		return result, &amp;FitError{
+			Pod:                   pod,
+			NumAllNodes:           len(g.nodeInfoSnapshot.NodeInfoList),
+			FailedPredicates:      failedPredicateMap,
+			FilteredNodesStatuses: filteredNodesStatuses,
+		}
+	}
+	trace.Step(&quot;Running postfilter plugins done&quot;)
+	metrics.SchedulingAlgorithmPredicateEvaluationDuration.Observe(metrics.SinceInSeconds(startPredicateEvalTime))
+	metrics.DeprecatedSchedulingAlgorithmPredicateEvaluationDuration.Observe(metrics.SinceInMicroseconds(startPredicateEvalTime))
+	metrics.SchedulingLatency.WithLabelValues(metrics.PredicateEvaluation).Observe(metrics.SinceInSeconds(startPredicateEvalTime))
+	metrics.DeprecatedSchedulingLatency.WithLabelValues(metrics.PredicateEvaluation).Observe(metrics.SinceInSeconds(startPredicateEvalTime))
+
+	startPriorityEvalTime := time.Now()
+	// When only one node after predicate, just use it.
+	if len(filteredNodes) == 1 {
+		metrics.SchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInSeconds(startPriorityEvalTime))
+		metrics.DeprecatedSchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInMicroseconds(startPriorityEvalTime))
+		return ScheduleResult{
+			SuggestedHost:  filteredNodes[0].Name,
+			EvaluatedNodes: 1 + len(failedPredicateMap) + len(filteredNodesStatuses),
+			FeasibleNodes:  1,
+		}, nil
+	}
+
+	metaPrioritiesInterface := g.priorityMetaProducer(pod, filteredNodes, g.nodeInfoSnapshot)
+	priorityList, err := g.prioritizeNodes(ctx, state, pod, metaPrioritiesInterface, filteredNodes)
+	if err != nil {
+		return result, err
+	}
+
+	metrics.SchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInSeconds(startPriorityEvalTime))
+	metrics.DeprecatedSchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInMicroseconds(startPriorityEvalTime))
+	metrics.SchedulingLatency.WithLabelValues(metrics.PriorityEvaluation).Observe(metrics.SinceInSeconds(startPriorityEvalTime))
+	metrics.DeprecatedSchedulingLatency.WithLabelValues(metrics.PriorityEvaluation).Observe(metrics.SinceInSeconds(startPriorityEvalTime))
+
+	host, err := g.selectHost(priorityList)
+	trace.Step(&quot;Prioritizing done&quot;)
+
+	return ScheduleResult{
+		SuggestedHost:  host,
+		EvaluatedNodes: len(filteredNodes) + len(failedPredicateMap) + len(filteredNodesStatuses),
+		FeasibleNodes:  len(filteredNodes),
+	}, err
+}
+</code></pre>
+
+<p>接下来对<code>Scheduler()</code>函数中的重要代码进行分析</p>
+
+<h3 id="6-1-podpassesbasicchecks">6.1 podPassesBasicChecks</h3>
+
+<p>第8行，podPassesBasicChecks对pod进行一些基本检查，目前只对pvc（PersistentVolumeClaim）进行检查。</p>
+
+<pre><code class="language-go">if err := podPassesBasicChecks(pod, g.pvcLister); err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Basic checks done&quot;)
+</code></pre>
+
+<p><code>podPassesBasicChecks()</code>函数的具体实现如下：</p>
+
+<pre><code class="language-go">// podPassesBasicChecks makes sanity checks on the pod if it can be scheduled.
+func podPassesBasicChecks(pod *v1.Pod, pvcLister corelisters.PersistentVolumeClaimLister) error {
+	// Check PVCs used by the pod
+	namespace := pod.Namespace
+	manifest := &amp;(pod.Spec)
+	for i := range manifest.Volumes {
+		volume := &amp;manifest.Volumes[i]
+		if volume.PersistentVolumeClaim == nil {
+			// Volume is not a PVC, ignore
+			continue
+		}
+		pvcName := volume.PersistentVolumeClaim.ClaimName
+		pvc, err := pvcLister.PersistentVolumeClaims(namespace).Get(pvcName)
+		if err != nil {
+			// The error has already enough context (&quot;persistentvolumeclaim &quot;myclaim&quot; not found&quot;)
+			return err
+		}
+
+		if pvc.DeletionTimestamp != nil {
+			return fmt.Errorf(&quot;persistentvolumeclaim %q is being deleted&quot;, pvc.Name)
+		}
+	}
+
+	return nil
+}
+
+</code></pre>
+
+<h3 id="6-2-snapshot">6.2 snapshot</h3>
+
+<p>第13行，<code>snapshot()</code>将遍历cache中的所有node，更新node的信息，包括：cache NodeInfo and NodeTree order。此snapshot作用于所有预选和优选函数</p>
+
+<pre><code class="language-go">if err := g.snapshot(); err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Snapshoting scheduler cache and node infos done&quot;)
+</code></pre>
+
+<p><code>snapshot()</code>函数的具体实现如下：</p>
+
+<pre><code class="language-go">// snapshot snapshots scheduler cache and node infos for all fit and priority
+// functions.
+func (g *genericScheduler) snapshot() error {
+	// Used for all fit and priority funcs.
+	return g.cache.UpdateNodeInfoSnapshot(g.nodeInfoSnapshot)
+}
+</code></pre>
+
+<h3 id="6-4-nodeinfolist">6.4 NodeInfoList</h3>
+
+<p>第18行，对node的列表长度进行判断，检查是否有可用的节点。</p>
+
+<pre><code class="language-go">if len(g.nodeInfoSnapshot.NodeInfoList) == 0 {
+		return result, ErrNoNodesAvailable
+	}
+</code></pre>
+
+<h3 id="6-5-findnodesthatfit">6.5 findNodesThatFit</h3>
+
+<blockquote>
+<p>具体<code>findNodesThatFit</code>的代码细节将在后续的独立文章中分析</p>
+</blockquote>
+
+<p>第30行，<code>g.findNodesThatFit()</code>函数是预选策略的调度逻辑。</p>
+
+<pre><code class="language-go">startPredicateEvalTime := time.Now()
+	filteredNodes, failedPredicateMap, filteredNodesStatuses, err := g.findNodesThatFit(ctx, state, pod)
+	if err != nil {
+		return result, err
+	}
+	trace.Step(&quot;Computing predicates done&quot;)
+</code></pre>
+
+<h3 id="6-6-prioritizenodes">6.6 prioritizeNodes</h3>
+
+<blockquote>
+<p>具体<code>prioritizeNodes</code>的代码细节将在后续的独立文章中分析</p>
+</blockquote>
+
+<p>第56行，<code>g.priorityMetaProducer()</code>函数是优选策略的调度逻辑，优选策略是对预选出的节点进行二次筛选，</p>
+
+<pre><code class="language-go">startPriorityEvalTime := time.Now()
+	// When only one node after predicate, just use it.
+	if len(filteredNodes) == 1 {
+		metrics.SchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInSeconds(startPriorityEvalTime))
+		metrics.DeprecatedSchedulingAlgorithmPriorityEvaluationDuration.Observe(metrics.SinceInMicroseconds(startPriorityEvalTime))
+		return ScheduleResult{
+			SuggestedHost:  filteredNodes[0].Name,
+			EvaluatedNodes: 1 + len(failedPredicateMap) + len(filteredNodesStatuses),
+			FeasibleNodes:  1,
+		}, nil
+	}
+
+	metaPrioritiesInterface := g.priorityMetaProducer(pod, filteredNodes, g.nodeInfoSnapshot)
+	priorityList, err := g.prioritizeNodes(ctx, state, pod, metaPrioritiesInterface, filteredNodes)
+	if err != nil {
+		return result, err
+	}
+</code></pre>
+
+<p>其中：</p>
+
+<p>第3行，对预选出的节点进行判断：当节点的个数为1时，直接使用这个节点，就不需要再进行优选策略了，这是检验的正常逻辑。</p>
+
+<p>第14行，这里返回的值是<code>priorityList</code>，表明优选策略选出的是包含多个最佳节点的列表，而不是选出唯一的一个节点，优选策略是通过score的计算来对节点进行过滤的。</p>
+
+<h3 id="6-7-selecthost">6.7 selectHost</h3>
+
+<p>第79行，<code>g.selectHost()</code>函数的参数为<code>priorityList</code>，即优选策略选出的最佳节点的列表。selectHost从这个列表出选出分数最高的节点，作为最后pod绑定的节点。当有多个节点的分数相同时，在k8s中定义了一个更详细的选择算法，这里就不叙述了。</p>
+
+<pre><code class="language-go">host, err := g.selectHost(priorityList)
+	trace.Step(&quot;Prioritizing done&quot;)
+</code></pre>
+
+<p><code>selectHost()</code>函数的具体实现为：</p>
+
+<pre><code class="language-go">// selectHost takes a prioritized list of nodes and then picks one
+// in a reservoir sampling manner from the nodes that had the highest score.
+func (g *genericScheduler) selectHost(nodeScoreList framework.NodeScoreList) (string, error) {
+	if len(nodeScoreList) == 0 {
+		return &quot;&quot;, fmt.Errorf(&quot;empty priorityList&quot;)
+	}
+	maxScore := nodeScoreList[0].Score
+	selected := nodeScoreList[0].Name
+	cntOfMaxScore := 1
+	for _, ns := range nodeScoreList[1:] {
+		if ns.Score &gt; maxScore {
+			maxScore = ns.Score
+			selected = ns.Name
+			cntOfMaxScore = 1
+		} else if ns.Score == maxScore {
+			cntOfMaxScore++
+			if rand.Intn(cntOfMaxScore) == 0 {
+				// Replace the candidate with probability of 1/cntOfMaxScore
+				selected = ns.Name
+			}
+		}
+	}
+	return selected, nil
+}
+</code></pre>
+
+<p>这个函数的逻辑就是对节点的分数进行比较，最后选出节点分数最高的那个节点，返回结果。</p>
+
+<h2 id="7-sched-preempt">7.sched.preempt</h2>
+
+<blockquote>
+<p>具体的<code>sched.preempt</code>的代码细节将在后续的文章单独分析</p>
+</blockquote>
+
+<p>第37行，<code>sched.preempt()</code>函数是抢占逻辑的实现。当预选和优选策略均失败时，就会进行抢占式调度，将某个节点上的低优先级的pod驱逐，将优先级更高的pod调度到这个节点上。</p>
+
+<pre><code class="language-go">	if err != nil {
+		sched.recordSchedulingFailure(podInfo.DeepCopy(), err, v1.PodReasonUnschedulable, err.Error())
+		// Schedule() may have failed because the pod would not fit on any host, so we try to
+		// preempt, with the expectation that the next time the pod is tried for scheduling it
+		// will fit due to the preemption. It is also possible that a different pod will schedule
+		// into the resources that were preempted, but this is harmless.
+		if fitError, ok := err.(*core.FitError); ok {
+			if sched.DisablePreemption {
+				klog.V(3).Infof(&quot;Pod priority feature is not enabled or preemption is disabled by scheduler configuration.&quot; +
+					&quot; No preemption is performed.&quot;)
+			} else {
+				preemptionStartTime := time.Now()
+				sched.preempt(schedulingCycleCtx, state, fwk, pod, fitError)
+				metrics.PreemptionAttempts.Inc()
+				metrics.SchedulingAlgorithmPreemptionEvaluationDuration.Observe(metrics.SinceInSeconds(preemptionStartTime))
+				metrics.DeprecatedSchedulingAlgorithmPreemptionEvaluationDuration.Observe(metrics.SinceInMicroseconds(preemptionStartTime))
+				metrics.SchedulingLatency.WithLabelValues(metrics.PreemptionEvaluation).Observe(metrics.SinceInSeconds(preemptionStartTime))
+				metrics.DeprecatedSchedulingLatency.WithLabelValues(metrics.PreemptionEvaluation).Observe(metrics.SinceInSeconds(preemptionStartTime))
+			}
+			// Pod did not fit anywhere, so it is counted as a failure. If preemption
+			// succeeds, the pod should get counted as a success the next time we try to
+			// schedule it. (hopefully)
+			metrics.PodScheduleFailures.Inc()
+		} else {
+			klog.Errorf(&quot;error selecting node for pod: %v&quot;, err)
+			metrics.PodScheduleErrors.Inc()
+		}
+		return
+</code></pre>
 
     </div>
 
