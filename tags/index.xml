@@ -2,9 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Website of Jayce</title>
-    <link>https://example.com/tags/</link>
+    <link>https://yuxiaobo96.github.io/tags/</link>
     <description>Recent content in Tags on Website of Jayce</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh</language><atom:link href="https://example.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh</language>
+    <lastBuildDate>Wed, 24 Mar 2021 15:17:16 +0800</lastBuildDate><atom:link href="https://yuxiaobo96.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Istio</title>
+      <link>https://yuxiaobo96.github.io/tags/istio/</link>
+      <pubDate>Wed, 24 Mar 2021 15:17:16 +0800</pubDate>
+      
+      <guid>https://yuxiaobo96.github.io/tags/istio/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
